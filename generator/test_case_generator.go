@@ -606,7 +606,27 @@ func main() {
 			if len(partition.tests) != 0 && !slices.Contains(partition.tests, testType) {
 				continue
 			}
-			testMatrix := genMatrix(testType, testConfigs, partition.ami, partition.testConfigOverrides, partition.excludedTestDirs)
+			// SUBSET-TEST: temporary trim for a targeted subset CI run. Restricts the
+			// generated matrix to three ec2_linux tests in the commercial partition and
+			// emits empty matrices for everything else. DO NOT MERGE; delete this block.
+			effectiveConfigs := testConfigs
+			if testType != testTypeKeyEc2Linux || partition.configName != "" {
+				effectiveConfigs = nil
+			} else {
+				subsetAllowed := map[string]struct{}{
+					"./test/feature/linux/journald_logs": {},
+					"./test/assume_role":                 {},
+					"./test/credential_chain":            {},
+				}
+				var kept []testConfig
+				for _, c := range effectiveConfigs {
+					if _, ok := subsetAllowed[c.testDir]; ok {
+						kept = append(kept, c)
+					}
+				}
+				effectiveConfigs = kept
+			}
+			testMatrix := genMatrix(testType, effectiveConfigs, partition.ami, partition.testConfigOverrides, partition.excludedTestDirs)
 			writeTestMatrixFile(testType+partition.configName, testMatrix)
 		}
 	}

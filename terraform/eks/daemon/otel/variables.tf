@@ -40,13 +40,3 @@ variable "instance_type" {
   type    = string
   default = "t3.medium"
 }
-
-variable "karpenter_version" {
-  type    = string
-  default = "1.13.0"
-}
-
-variable "keda_version" {
-  type    = string
-  default = "2.16.1"
-}

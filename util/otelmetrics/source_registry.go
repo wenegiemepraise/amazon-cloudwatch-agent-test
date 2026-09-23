@@ -18,8 +18,6 @@ const (
 	SourceControlPlane
 	SourceKubeStateMetrics
 	SourceKSMNodeScoped
-	SourceKarpenter
-	SourceKEDA
 )
 
 // SourceMapping pairs a MetricSource with its metric definitions.

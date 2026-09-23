@@ -1,12 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT
 
+//go:build !windows
+
 package otlpvalidation
 
 import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/aws/amazon-cloudwatch-agent-test/test/status"
@@ -18,12 +21,25 @@ const (
 	defaultRetryInterval = 30 * time.Second
 )
 
+func getRegion(region string) string {
+	if region != "" {
+		return region
+	}
+	if r := os.Getenv("AWS_REGION"); r != "" {
+		return r
+	}
+	if r := os.Getenv("AWS_DEFAULT_REGION"); r != "" {
+		return r
+	}
+	return "us-west-2"
+}
+
 func ValidateOtlpMetrics(testName string, region string, metrics []string) status.TestGroupResult {
 	return ValidateOtlpMetricsWithLabels(testName, region, metrics, nil)
 }
 
 func ValidateOtlpMetricsWithLabels(testName string, region string, metrics []string, labels map[string]string) status.TestGroupResult {
-	region = otelmetrics.ResolveRegion(region)
+	region = getRegion(region)
 
 	client, err := otelmetrics.NewClient(context.Background(), otelmetrics.TestConfig{
 		Region:         region,
